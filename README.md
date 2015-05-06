@@ -2,7 +2,7 @@
  
 ## Yao's an ORM for Golang
 Yao is an ORM for Golang, inspired in [Laravel eloquent ORM](http://laravel.com/docs/5.0/eloquent)
-Yao generates a model for every table in yuor databse, making easier to deal with the most common CRUD abd boring operations.
+Yao generates a model for every table in yuor databse, making easier to deal with the most common CRUD boring operations.
 
 ### No Magic philosophy: 
 The philosofy of Yao is to generate plain go code that has no other dependecies than the standard database/sql library.
