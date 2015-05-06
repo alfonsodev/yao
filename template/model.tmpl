@@ -1,0 +1,129 @@
+package models
+
+import (
+  "database/sql"
+  "database/sql/driver"
+_ "github.com/lib/pq"
+  "fmt"
+  "github.com/alfonsodev/yao/util"
+)
+
+type WhereClause struct {
+	Field string
+	Condition string
+	Value interface{}
+	Connector string
+}
+
+type {{.Name}} struct {
+	yaoDb               *sql.DB
+  	yaoWhereClauses     []WhereClause
+	{{.StructFields}}
+}
+
+func PanicIf(e error) {
+  if e != nil {
+    panic(e)
+  }
+}
+
+func GetValue(v driver.Valuer) interface{} {
+  o, err := v.Value()
+  PanicIf(err)
+
+  return o
+}
+
+func (obj *{{.Name}}) Save() (*sql.Rows, error) {
+    keys, placeholders, values := util.InsertHelper(obj)
+    query := "INSERT INTO {{.Schema}}.{{.Table}} ({{.Keys}}) "
+    query += " VALUES({{.Placeholders}}) "
+
+    return obj.yaoDb.Query(query,
+        {{.SaveFields}}
+    )
+}
+
+func (obj *{{.Name}}) Where(field string, condition string, value string) {
+
+	clause := WhereClause{
+		Field: field,
+		Condition: condition,
+		Value: value,
+	}
+
+	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
+}
+
+func (obj *{{.Name}}) And(field string, condition string, value string) {
+
+	clause := WhereClause{
+		Field: field,
+		Condition: condition,
+		Value: value,
+		Connector: "AND",
+	}
+
+	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
+
+}
+
+func (obj *{{.Name}}) Or(field string, condition string, value string) {
+
+	clause := WhereClause{
+		Field: field,
+		Condition: condition,
+		Value: value,
+		Connector: "OR",
+	}
+
+	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
+}
+
+func (obj *{{.Name}}) Get() ([]{{.Name}}, error) {
+	var values []interface{}
+	sql := "SELECT * FROM {{.Schema}}.{{.Table}} "
+	sql += "WHERE "
+	for i, v := range yaoWhereClauses {
+		if v.Connector != "" {
+			sql += " " + v.Connector + " "
+		}
+		sql  += v.Field +  "  " + v.Condition + " " + string(i+1) 
+	}
+	sql = sql[:len(sql) - 5]
+	rows, err := obj.yaoDb.Query(query)
+
+	for rows.Next() {
+		var u {{.Name}}
+		rows.Scan(
+			{{.ScanFields}}
+		)
+
+		results = append(results, u)
+	}
+
+	return results, err
+}
+
+func (obj *{{.Name}}) All() ([]{{.Name}}, error) {
+  var results []{{.Name}}
+  query := "SELECT * FROM {{.Schema}}.{{.Table}} "
+  rows, err := obj.yaoDb.Query(query)
+
+  for rows.Next() {
+    var u {{.Name}}
+    rows.Scan(
+      {{.ScanFields}}
+    )
+
+    results = append(results, u)
+  }
+
+  return results, err
+}
+
+func New{{.Name}}(db *sql.DB) UsersModel {
+  var obj {{.Name}}
+  obj.yaoDb = db
+  return obj
+}
