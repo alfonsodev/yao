@@ -3,7 +3,6 @@ package filesytem
 import (
 	"fmt"
 	"os"
-
 )
 
 const MODELSDIR = "./models" //TODO: make it configurable by flag
@@ -14,15 +13,15 @@ func CreateModelsFolder() error {
 }
 
 func CreateSchemaFolder(schema string) error {
-	return os.Mkdir(MODELSDIR + "/" + schema, PERMISSIONS)
+	return os.Mkdir(MODELSDIR+"/"+schema, PERMISSIONS)
 }
 
 func CreateModelFile(schema string, name string, content string) error {
-	var fileName string 
+	var fileName string
 	if schema == "" {
 		fileName = MODELSDIR + "/" + name + ".go"
 	} else {
-		fileName = MODELSDIR + "/"+schema + "/" + name + ".go"
+		fileName = MODELSDIR + "/" + schema + "/" + name + ".go"
 	}
 	// _, ferr := os.Lstat(fileName)
 
@@ -31,7 +30,7 @@ func CreateModelFile(schema string, name string, content string) error {
 	// 	return ferr
 	// }
 
-	fmt.Println("[YAO]creating file " + MODELSDIR + "/"+schema + "/" + ".go")
+	fmt.Println("[YAO]creating file " + MODELSDIR + "/" + schema + "/" + ".go")
 	f, e := os.Create(fileName)
 	if e != nil {
 		panic(e)

@@ -80,11 +80,10 @@ func Generate(schemaname string) {
 	if len(schemas) > 0 {
 		for _, v := range schemas {
 			generateModelFromSchema(v)
-		}	
+		}
 		return
 	}
 }
-
 
 func generateModelFromSchema(schemaname string) {
 	info := yao.GetInformationSchema(schemaname)
@@ -95,8 +94,8 @@ func generateModelFromSchema(schemaname string) {
 
 	for k, v := range info {
 		fs.CreateModelFile(schemaname, strings.ToLower(k), PrintModel(k, v))
-		fmt.Println("./models/" + schemaname +"/"+ strings.ToLower(k)+".go")
-		cmd := exec.Command("go", "fmt", "./models/" + schemaname +"/"+ UcFirst(k)+".go")
+		fmt.Println("./models/" + schemaname + "/" + strings.ToLower(k) + ".go")
+		cmd := exec.Command("go", "fmt", "./models/"+schemaname+"/"+UcFirst(k)+".go")
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println(string(err.Error()))

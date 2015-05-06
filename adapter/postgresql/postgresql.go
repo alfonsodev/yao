@@ -29,21 +29,21 @@ func init() {
 	g.Register("postgres", &driver)
 
 	typeMap = map[string]string{
-		"integer":           		"sql.NullInt64",
-		"smallint":          		"sql.NullInt64",
-		"bigint":            		"sql.NullInt64",
-		"decimal":           		"sql.NullInt64",
-		"numeric":           		"sql.NullInt64",
-		"real":              		"sql.NullFloat64",
-		"double precision":  		"sql.NullFloat64",
-		"smallserial":       		"sql.NullInt64",
-		"serial":            		"sql.NullInt64",
-		"bigserial":         		"sql.NullInt64",
-		"boolean":           		"sql.NullBool",
-		"character":         		"sql.NullString",
-		"character varying": 		"sql.NullString",
-		"json":              		"sql.NullString",
-		"timestamp with time zone": 	"sql.NullString",
+		"integer":           "sql.NullInt64",
+		"smallint":          "sql.NullInt64",
+		"bigint":            "sql.NullInt64",
+		"decimal":           "sql.NullInt64",
+		"numeric":           "sql.NullInt64",
+		"real":              "sql.NullFloat64",
+		"double precision":  "sql.NullFloat64",
+		"smallserial":       "sql.NullInt64",
+		"serial":            "sql.NullInt64",
+		"bigserial":         "sql.NullInt64",
+		"boolean":           "sql.NullBool",
+		"character":         "sql.NullString",
+		"character varying": "sql.NullString",
+		"json":              "sql.NullString",
+		"timestamp with time zone": "sql.NullString",
 	}
 }
 

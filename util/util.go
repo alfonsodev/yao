@@ -19,7 +19,7 @@ func InsertHelper(strc interface{}) (string, string, []interface{}) {
 	for i := 0; i < val.NumField(); i++ {
 		fieldName := strings.ToLower(val.Type().Field(i).Name)
 		//TODO: This is not a good way of ignoring fields, we can come up with a general rule that could be
-		// - private fields for instance should be ignored 
+		// - private fields for instance should be ignored
 		// - Primary key should be ignore
 		if fieldName == "yaodb" || fieldName == "id" || fieldName == "yaowhereclauses" {
 			continue

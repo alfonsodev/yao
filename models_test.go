@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"datbase/sql"
-	"testing"
+	"fmt"
 	ums "github.com/alfonsodev/yao/models/usermanager"
+	"testing"
 )
 
 func init() {
@@ -12,6 +12,5 @@ func init() {
 }
 
 func TestSave() {
-	var User ums.Users	
+	var User ums.Users
 }
-
