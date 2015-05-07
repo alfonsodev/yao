@@ -1,41 +1,19 @@
-package models
+package {{.Schema}}
 
 import (
   "database/sql"
-  "database/sql/driver"
 _ "github.com/lib/pq"
-  "fmt"
+  // "fmt"
   "github.com/alfonsodev/yao/util"
 )
 
-type WhereClause struct {
-	Field string
-	Condition string
-	Value interface{}
-	Connector string
-}
-
 type {{.Name}} struct {
 	yaoDb               *sql.DB
-  	yaoWhereClauses     []WhereClause
+  yaoWhereClauses     []util.WhereClause
 	{{.StructFields}}
 }
 
-func PanicIf(e error) {
-  if e != nil {
-    panic(e)
-  }
-}
-
-func GetValue(v driver.Valuer) interface{} {
-  o, err := v.Value()
-  PanicIf(err)
-
-  return o
-}
-
 func (obj *{{.Name}}) Save() (*sql.Rows, error) {
-    keys, placeholders, values := util.InsertHelper(obj)
     query := "INSERT INTO {{.Schema}}.{{.Table}} ({{.Keys}}) "
     query += " VALUES({{.Placeholders}}) "
 
@@ -46,7 +24,7 @@ func (obj *{{.Name}}) Save() (*sql.Rows, error) {
 
 func (obj *{{.Name}}) Where(field string, condition string, value string) {
 
-	clause := WhereClause{
+	clause := util.WhereClause{
 		Field: field,
 		Condition: condition,
 		Value: value,
@@ -57,7 +35,7 @@ func (obj *{{.Name}}) Where(field string, condition string, value string) {
 
 func (obj *{{.Name}}) And(field string, condition string, value string) {
 
-	clause := WhereClause{
+	clause := util.WhereClause{
 		Field: field,
 		Condition: condition,
 		Value: value,
@@ -70,7 +48,7 @@ func (obj *{{.Name}}) And(field string, condition string, value string) {
 
 func (obj *{{.Name}}) Or(field string, condition string, value string) {
 
-	clause := WhereClause{
+	clause := util.WhereClause{
 		Field: field,
 		Condition: condition,
 		Value: value,
@@ -81,18 +59,18 @@ func (obj *{{.Name}}) Or(field string, condition string, value string) {
 }
 
 func (obj *{{.Name}}) Get() ([]{{.Name}}, error) {
-	var values []interface{}
 	sql := "SELECT * FROM {{.Schema}}.{{.Table}} "
 	sql += "WHERE "
-	for i, v := range yaoWhereClauses {
+	for i, v := range obj.yaoWhereClauses {
 		if v.Connector != "" {
 			sql += " " + v.Connector + " "
 		}
 		sql  += v.Field +  "  " + v.Condition + " " + string(i+1) 
 	}
 	sql = sql[:len(sql) - 5]
-	rows, err := obj.yaoDb.Query(query)
+	rows, err := obj.yaoDb.Query(sql)
 
+  var results []{{.Name}}
 	for rows.Next() {
 		var u {{.Name}}
 		rows.Scan(
@@ -122,8 +100,8 @@ func (obj *{{.Name}}) All() ([]{{.Name}}, error) {
   return results, err
 }
 
-func New{{.Name}}(db *sql.DB) UsersModel {
-  var obj {{.Name}}
-  obj.yaoDb = db
-  return obj
+func New{{.Name}} (db *sql.DB) {{.Name}} {
+  var model {{.Name}}
+  model.yaoDb = db
+  return model 
 }

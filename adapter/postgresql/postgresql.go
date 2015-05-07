@@ -5,6 +5,7 @@ import (
 	"fmt"
 	g "github.com/alfonsodev/yao/generate"
 	_ "github.com/lib/pq"
+	"strings"
 )
 
 //Maps postgres types with go sql package types
@@ -111,19 +112,19 @@ func (p *pq) GetInformationSchema(schemaName string) map[string][]g.FieldInfo {
 
 		err := tables.Scan(&name)
 		PanicIf(err)
-		fmt.Printf("Table: %s\n", name)
+		//		fmt.Printf("Table: %s\n", name)
 
 		cols, e := p.db.Query(selectColumns, schemaName, name)
 		PanicIf(e)
 		keys := p.GetPrimaryKey(schemaName + "." + name)
-
+		fmt.Printf("%s.%s =  %+v \n", schemaName, name, keys)
 		//for each column
 		for cols.Next() {
+			PanicIf(cols.Scan(&colName, &nullable, &dataType))
 			KeyInfo := ""
-			if InSlice(colName, keys) {
+			if InSlice(strings.ToLower(colName), keys) {
 				KeyInfo = "pk"
 			}
-			PanicIf(cols.Scan(&colName, &nullable, &dataType))
 			var ok bool
 			dataType, ok = typeMap[dataType]
 			if !ok {

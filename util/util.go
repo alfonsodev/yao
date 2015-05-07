@@ -1,6 +1,7 @@
 package util
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"reflect"
 	"strings"
@@ -85,6 +86,26 @@ func UpdateHelper(u interface{}) (string, []interface{}) {
 	}
 
 	return keys, v
+}
+
+type WhereClause struct {
+	Field     string
+	Condition string
+	Value     interface{}
+	Connector string
+}
+
+func PanicIf(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func GetValue(v driver.Valuer) interface{} {
+	o, err := v.Value()
+	PanicIf(err)
+
+	return o
 }
 
 // func main() {

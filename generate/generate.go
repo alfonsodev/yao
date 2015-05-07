@@ -123,14 +123,20 @@ func PrintModel(name string, fields []FieldInfo) string {
 	}
 	// , "// struct fields\n", "//scan fields \n", "usermanager", "users", "keys", "place"}
 
-	for _, v := range fields {
+	for i, v := range fields {
 		data.StructFields += "   " + UcFirst(v.Name) + " " + v.Datatype + "\n"
 		data.ScanFields += "        &u." + UcFirst(v.Name) + ", \n"
-		data.SaveFields += "          GetValue(obj." + UcFirst(v.Name) + "), \n"
+		data.SaveFields += "          util.GetValue(obj." + UcFirst(v.Name) + "), \n"
 		if v.Name == "json" {
 			data.JsonFields += "obj.Json.String = \"{}\" \n"
 		}
+
+		data.Placeholders += fmt.Sprintf(", $%v", i)
+		fmt.Println(v.Name + " : keyinfo : " + v.KeyInfo + "\n")
+		data.Keys += ", " + strings.ToLower(v.Name)
 	}
+	data.Placeholders = data.Placeholders[1:]
+	data.Keys = data.Keys[1:]
 
 	tmpl, err := template.ParseFiles("./template/model.tmpl")
 	if err != nil {
