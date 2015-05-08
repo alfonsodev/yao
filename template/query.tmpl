@@ -1,0 +1,81 @@
+package {{.Schema}}
+import(
+	"fmt"
+	"reflect"
+)
+type Clause struct {
+        Field string
+        Condition string
+        Value interface{}
+        Connector string
+        Parenthesis string
+}
+
+type Query struct {
+        Schema string
+        Table string
+        Where Clause
+        Clauses []Clause
+        Limit int64
+}
+
+func (q *Query) And(field string, condition string, value interface{}) *Query {
+
+        q.Clauses = append(q.Clauses, Clause{
+                Field:     field,
+                Condition: condition,
+                Value:     value,
+                Connector: "AND",
+        })
+
+        return q
+}
+func (q *Query) Or(field string, condition string, value interface{}) *Query {
+
+        q.Clauses = append(q.Clauses, Clause{
+                Field:     field,
+                Condition: condition,
+                Value:     value,
+                Connector: "OR",
+        })
+
+        return q
+}
+
+func StrutToScannable (u interface{}) []interface{} {
+	val := reflect.ValueOf(u).Elem()
+	v := make([]interface{}, val.NumField())
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		v[i] = valueField.Addr().Interface()
+	}
+
+	return v
+}
+
+func(q *Query) Get() []interface{} {
+	var values []interface{}
+	sql := "SELECT * FROM " + q.Schema +"." + q.Table + " WHERE "
+	// TODO: We are asuming there is always a Where clause
+	sql += fmt.Sprintf("%s %s $1", q.Where.Field, q.Where.Condition)
+	values = append(values, q.Where.Value)
+	for i, v := range q.Clauses {
+		if v.Connector != "" {
+			sql += " " + v.Connector + " "
+		}
+		sql += fmt.Sprintf("%s %s $%v", v.Field, v.Condition, i+2)
+		values = append(values, v.Value)
+	}
+	rows, err := UsersDb.Query(sql, values...)
+
+	var results []Users
+	var u Users
+	{{.SwitchForGet}}
+	for rows.Next() {
+		rows.Scan(StrutToScannable(u))
+		results = append(results, u)
+	}
+
+	return results
+}
+ 
