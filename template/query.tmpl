@@ -3,6 +3,11 @@ import(
 	"fmt"
 	"reflect"
 )
+
+type Modeler interface {
+	Save()
+
+}
 type Clause struct {
         Field string
         Condition string
@@ -53,7 +58,7 @@ func StrutToScannable (u interface{}) []interface{} {
 	return v
 }
 
-func(q *Query) Get() []interface{} {
+func(q *Query) Get() []Modeler {
 	var values []interface{}
 	sql := "SELECT * FROM " + q.Schema +"." + q.Table + " WHERE "
 	// TODO: We are asuming there is always a Where clause
@@ -66,10 +71,14 @@ func(q *Query) Get() []interface{} {
 		sql += fmt.Sprintf("%s %s $%v", v.Field, v.Condition, i+2)
 		values = append(values, v.Value)
 	}
-	rows, err := UsersDb.Query(sql, values...)
 
-	var results []Users
-	var u Users
+	// TODO : handle this error
+	rows, _ := UsersDb.Query(sql, values...)
+
+	var results []Modeler
+
+	var u Modeler 
+	
 	{{.SwitchForGet}}
 	for rows.Next() {
 		rows.Scan(StrutToScannable(u))
