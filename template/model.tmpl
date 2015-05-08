@@ -3,13 +3,14 @@ package {{.Schema}}
 import (
   "database/sql"
 _ "github.com/lib/pq"
-  // "fmt"
+  "fmt"
   "github.com/alfonsodev/yao/util"
 )
 
+var {{.Name}}Db *sql.DB
+
 type {{.Name}} struct {
-	yaoDb               *sql.DB
-  yaoWhereClauses     []util.WhereClause
+	yaoWhereClauses     []util.WhereClause
 	{{.StructFields}}
 }
 
@@ -17,12 +18,12 @@ func (obj *{{.Name}}) Save() (*sql.Rows, error) {
     query := "INSERT INTO {{.Schema}}.{{.Table}} ({{.Keys}}) "
     query += " VALUES({{.Placeholders}}) "
 
-    return obj.yaoDb.Query(query,
+    return {{.Name}}Db.Query(query,
         {{.SaveFields}}
     )
 }
 
-func (obj *{{.Name}}) Where(field string, condition string, value string) {
+func (obj *{{.Name}}) Where(field string, condition string, value interface{}) *{{.Name}} {
 
 	clause := util.WhereClause{
 		Field: field,
@@ -31,9 +32,11 @@ func (obj *{{.Name}}) Where(field string, condition string, value string) {
 	}
 
 	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
+
+  return obj
 }
 
-func (obj *{{.Name}}) And(field string, condition string, value string) {
+func (obj *{{.Name}}) And(field string, condition string, value interface{}) *{{.Name}} {
 
 	clause := util.WhereClause{
 		Field: field,
@@ -44,9 +47,11 @@ func (obj *{{.Name}}) And(field string, condition string, value string) {
 
 	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
 
+  return obj
+
 }
 
-func (obj *{{.Name}}) Or(field string, condition string, value string) {
+func (obj *{{.Name}}) Or(field string, condition string, value interface{}) *{{.Name}} {
 
 	clause := util.WhereClause{
 		Field: field,
@@ -56,19 +61,22 @@ func (obj *{{.Name}}) Or(field string, condition string, value string) {
 	}
 
 	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
+
+	return obj
 }
 
 func (obj *{{.Name}}) Get() ([]{{.Name}}, error) {
+  var values []interface{}
 	sql := "SELECT * FROM {{.Schema}}.{{.Table}} "
 	sql += "WHERE "
 	for i, v := range obj.yaoWhereClauses {
 		if v.Connector != "" {
 			sql += " " + v.Connector + " "
 		}
-		sql  += v.Field +  "  " + v.Condition + " " + string(i+1) 
+    sql += fmt.Sprintf(" %s %s $%v", v.Field, v.Condition, i+1)
+    values = append(values, v.Value)                           
 	}
-	sql = sql[:len(sql) - 5]
-	rows, err := obj.yaoDb.Query(sql)
+	rows, err := {{.Name}}Db.Query(sql, values...)
 
   var results []{{.Name}}
 	for rows.Next() {
@@ -80,13 +88,14 @@ func (obj *{{.Name}}) Get() ([]{{.Name}}, error) {
 		results = append(results, u)
 	}
 
+  obj.yaoWhereClauses = nil
 	return results, err
 }
 
-func (obj *{{.Name}}) All() ([]{{.Name}}, error) {
+func  All{{.Name}}() ([]{{.Name}}, error) {
   var results []{{.Name}}
   query := "SELECT * FROM {{.Schema}}.{{.Table}} "
-  rows, err := obj.yaoDb.Query(query)
+  rows, err := {{.Name}}Db.Query(query)
 
   for rows.Next() {
     var u {{.Name}}
@@ -101,7 +110,7 @@ func (obj *{{.Name}}) All() ([]{{.Name}}, error) {
 }
 
 func New{{.Name}} (db *sql.DB) {{.Name}} {
+  {{.Name}}Db = db
   var model {{.Name}}
-  model.yaoDb = db
   return model 
 }

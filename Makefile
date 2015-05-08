@@ -14,7 +14,7 @@ gen:
 	-rm -rf ./models
 	go run yao.go gen
 test: fixtures 
-	go test ./... 
+	go test ./models_test.go -v 
 all: structure fixtures gen
 	go test ./... 
 

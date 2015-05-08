@@ -117,7 +117,7 @@ func (p *pq) GetInformationSchema(schemaName string) map[string][]g.FieldInfo {
 		cols, e := p.db.Query(selectColumns, schemaName, name)
 		PanicIf(e)
 		keys := p.GetPrimaryKey(schemaName + "." + name)
-		fmt.Printf("%s.%s =  %+v \n", schemaName, name, keys)
+		// fmt.Printf("%s.%s =  %+v \n", schemaName, name, keys)
 		//for each column
 		for cols.Next() {
 			PanicIf(cols.Scan(&colName, &nullable, &dataType))
@@ -131,7 +131,7 @@ func (p *pq) GetInformationSchema(schemaName string) map[string][]g.FieldInfo {
 				panic("Type " + dataType + " not implemented.")
 			}
 			fields = append(fields, g.FieldInfo{colName, nullable, dataType, KeyInfo})
-			fmt.Printf("%s-%s-%s-%s\n", colName, nullable, dataType, KeyInfo)
+			// fmt.Printf("%s-%s-%s-%s\n", colName, nullable, dataType, KeyInfo)
 		}
 
 		informationSchema[name] = fields

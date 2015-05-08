@@ -20,6 +20,19 @@ type FieldInfo struct {
 	KeyInfo  string
 }
 
+type TemplateData struct {
+	Name         string
+	StructFields string
+	ScanFields   string
+	Schema       string
+	Table        string
+	Keys         string
+	Placeholders string
+	SaveFields   string
+	JsonFields   string
+	SwitchForGet string
+}
+
 type YaoDriver interface {
 	SetDb(db *sql.DB)
 	GetInformationSchema(schemaname string) map[string][]FieldInfo
@@ -68,9 +81,9 @@ func UcFirst(s string) string {
 	return strings.ToUpper(s[:1]) + s[1:]
 }
 
-// Genreate one modle file per table
+// Genreate one model file per table
 func Generate(schemaname string) {
-	//TODO: make a flag to change folder name
+	// TODO: make a flag to change folder name
 	err := fs.CreateModelsFolder()
 	if err != nil {
 		fmt.Println("[YAO] ./models folder already exist")
@@ -78,15 +91,34 @@ func Generate(schemaname string) {
 
 	schemas := yao.GetSchemas()
 	if len(schemas) > 0 {
-		for _, v := range schemas {
-			generateModelFromSchema(v)
+		for _, schename := range schemas {
+			info := yao.GetInformationSchema(schename)
+			generateModelFromSchema(schename, info)
+			genererateQueryFile(schename, info)
 		}
 		return
 	}
 }
 
-func generateModelFromSchema(schemaname string) {
-	info := yao.GetInformationSchema(schemaname)
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func genererateQueryFile(schemaname string, info map[string][]FieldInfo) {
+	data := TemplateData{ Schema: schemaname }
+	// Create static functions file (query.go)	
+	tmpl, err := template.ParseFiles("./template/query.tmpl")
+	panicIfErr(err)
+	out := new(bytes.Buffer)
+	err = tmpl.Execute(out, data)
+
+	fs.CreateQueryFile(schemaname, string(out.Bytes()))
+	panicIfErr(err)
+}
+
+func generateModelFromSchema(schemaname string, info map[string][]FieldInfo) {
 	err := fs.CreateSchemaFolder(schemaname)
 	if err != nil {
 		fmt.Println("[YAO] can't create ./models/" + schemaname + " , folder already exist?")
@@ -94,49 +126,58 @@ func generateModelFromSchema(schemaname string) {
 
 	for k, v := range info {
 		fs.CreateModelFile(schemaname, strings.ToLower(k), PrintModel(k, v))
-		fmt.Println("./models/" + schemaname + "/" + strings.ToLower(k) + ".go")
+		// fmt.Println("./models/" + schemaname + "/" + strings.ToLower(k) + ".go")
 		cmd := exec.Command("go", "fmt", "./models/"+schemaname+"/"+UcFirst(k)+".go")
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println(string(err.Error()))
 		}
-
 	}
 }
 
-func PrintModel(name string, fields []FieldInfo) string {
-	type TemplateData struct {
-		Name         string
-		StructFields string
-		ScanFields   string
-		Schema       string
-		Table        string
-		Keys         string
-		Placeholders string
-		SaveFields   string
-		JsonFields   string
+func PrintQuery(tables []string, fields []FieldInfo) string {
+	var out string
+	out += "switch q.Table { "
+	for _, v := range tables {
+		out += "case '" + v + "' :" 
+		out += "" 
 	}
+	out += "}" // close switch
+
+	return out
+
+}
+
+func PrintModel(name string, fields []FieldInfo) string {
+
 	data := TemplateData{
 		Name:   UcFirst(name),
 		Schema: "usermanager",
 		Table:  strings.ToLower(name),
 	}
-	// , "// struct fields\n", "//scan fields \n", "usermanager", "users", "keys", "place"}
 
 	for i, v := range fields {
 		data.StructFields += "   " + UcFirst(v.Name) + " " + v.Datatype + "\n"
 		data.ScanFields += "        &u." + UcFirst(v.Name) + ", \n"
-		data.SaveFields += "          util.GetValue(obj." + UcFirst(v.Name) + "), \n"
-		if v.Name == "json" {
-			data.JsonFields += "obj.Json.String = \"{}\" \n"
-		}
+		if v.KeyInfo != "pk" {
+			data.SaveFields += "          util.GetValue(obj." + UcFirst(v.Name) + "), \n"
+			if v.Name == "json" {
+				data.JsonFields += "obj.Json.String = \"{}\" \n"
+			}
 
-		data.Placeholders += fmt.Sprintf(", $%v", i)
-		fmt.Println(v.Name + " : keyinfo : " + v.KeyInfo + "\n")
-		data.Keys += ", " + strings.ToLower(v.Name)
+			// fmt.Println(v.Name + " : keyinfo : " + v.KeyInfo + "\n")
+			data.Placeholders += fmt.Sprintf(", $%v", i)
+			data.Keys += ", " + strings.ToLower(v.Name)
+		}
 	}
-	data.Placeholders = data.Placeholders[1:]
-	data.Keys = data.Keys[1:]
+
+	if len(data.Placeholders) > 0 {
+		data.Placeholders = data.Placeholders[1:]
+	}
+
+	if len(data.Keys) > 0 {
+		data.Keys = data.Keys[1:]
+	}
 
 	tmpl, err := template.ParseFiles("./template/model.tmpl")
 	if err != nil {
