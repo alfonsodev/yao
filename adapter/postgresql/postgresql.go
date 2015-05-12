@@ -3,9 +3,10 @@ package postgresql
 import (
 	"database/sql"
 	"fmt"
+	"strings"
+
 	g "github.com/alfonsodev/yao/generate"
 	_ "github.com/lib/pq"
-	"strings"
 )
 
 //Maps postgres types with go sql package types
@@ -91,7 +92,7 @@ func InSlice(x string, a []string) bool {
 
 func (p *pq) GetInformationSchema(schemaName string) map[string][]g.FieldInfo {
 	informationSchema := make(map[string][]g.FieldInfo)
-	fmt.Println("[postgresql] Getting information for schema: " + schemaName)
+	//	fmt.Println("[postgresql] Getting information for schema: " + schemaName)
 	if schemaName == "" {
 		schemaName = "public" //default schema in postgresql
 	}

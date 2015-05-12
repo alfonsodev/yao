@@ -1,16 +1,14 @@
 package {{.Schema}}
 
 import (
-  "database/sql"
-_ "github.com/lib/pq"
-  "fmt"
-  "github.com/alfonsodev/yao/util"
+	"database/sql"
+	_ "github.com/lib/pq"
+	"strings"
 )
 
 var {{.Name}}Db *sql.DB
 
 type {{.Name}} struct {
-	yaoWhereClauses     []util.WhereClause
 	{{.StructFields}}
 }
 
@@ -23,74 +21,8 @@ func (obj *{{.Name}}) Save() (*sql.Rows, error) {
     )
 }
 
-func (obj *{{.Name}}) Where(field string, condition string, value interface{}) *{{.Name}} {
 
-	clause := util.WhereClause{
-		Field: field,
-		Condition: condition,
-		Value: value,
-	}
 
-	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
-
-  return obj
-}
-
-func (obj *{{.Name}}) And(field string, condition string, value interface{}) *{{.Name}} {
-
-	clause := util.WhereClause{
-		Field: field,
-		Condition: condition,
-		Value: value,
-		Connector: "AND",
-	}
-
-	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
-
-  return obj
-
-}
-
-func (obj *{{.Name}}) Or(field string, condition string, value interface{}) *{{.Name}} {
-
-	clause := util.WhereClause{
-		Field: field,
-		Condition: condition,
-		Value: value,
-		Connector: "OR",
-	}
-
-	obj.yaoWhereClauses = append(obj.yaoWhereClauses, clause)
-
-	return obj
-}
-
-func (obj *{{.Name}}) Get() ([]{{.Name}}, error) {
-  var values []interface{}
-	sql := "SELECT * FROM {{.Schema}}.{{.Table}} "
-	sql += "WHERE "
-	for i, v := range obj.yaoWhereClauses {
-		if v.Connector != "" {
-			sql += " " + v.Connector + " "
-		}
-    sql += fmt.Sprintf(" %s %s $%v", v.Field, v.Condition, i+1)
-    values = append(values, v.Value)                           
-	}
-	rows, err := {{.Name}}Db.Query(sql, values...)
-
-  var results []{{.Name}}
-	for rows.Next() {
-		var u {{.Name}}
-		rows.Scan(
-			{{.ScanFields}}
-		)
-
-		results = append(results, u)
-	}
-
-  obj.yaoWhereClauses = nil
-	return results, err
-}
 
 func  All{{.Name}}() ([]{{.Name}}, error) {
   var results []{{.Name}}
@@ -114,3 +46,30 @@ func New{{.Name}} (db *sql.DB) {{.Name}} {
   var model {{.Name}}
   return model 
 }
+
+func {{.Name}}Where(field string, condition string, value interface{}) Query {
+	q:= Query {
+		Schema: "{{.Schema}}",
+		Table: strings.ToLower("{{.Name}}"),
+	}
+
+	q.Where = Clause{
+		Field: field,
+		Condition: condition,
+		Value: value,
+	}
+
+	return q 
+}
+
+func {{.Name}}Get(rows *sql.Rows) []Modeler {
+	var results []Modeler
+	var row {{.Name}} 
+	for rows.Next() {
+		rows.Scan(StrutToScannable(&row))
+		results = append(results, &row)
+	}
+
+	return results
+}
+

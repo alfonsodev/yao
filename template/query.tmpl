@@ -1,19 +1,13 @@
 package {{.Schema}}
+
 import(
 	"fmt"
 	"reflect"
+	"database/sql/driver"
 )
 
 type Modeler interface {
-	Save()
-
-}
-type Clause struct {
-        Field string
-        Condition string
-        Value interface{}
-        Connector string
-        Parenthesis string
+	Save() (*sql.Rows, error)
 }
 
 type Query struct {
@@ -24,8 +18,27 @@ type Query struct {
         Limit int64
 }
 
-func (q *Query) And(field string, condition string, value interface{}) *Query {
+type Clause struct {
+        Field string
+        Condition string
+        Value interface{}
+        Connector string
+        Parenthesis string
+}
 
+func panicIf(err error) {
+	if err != nil {
+		panic(err.Error())
+	}
+}
+func getValue(v driver.Valuer) interface{} {
+	o, err := v.Value()
+	panicIf(err)
+
+	return o
+}
+
+func (q *Query) And(field string, condition string, value interface{}) *Query {
         q.Clauses = append(q.Clauses, Clause{
                 Field:     field,
                 Condition: condition,
@@ -49,6 +62,8 @@ func (q *Query) Or(field string, condition string, value interface{}) *Query {
 
 func StrutToScannable (u interface{}) []interface{} {
 	val := reflect.ValueOf(u).Elem()
+//	fname := strings.ToLower(val.Type().Field(i).Name)
+
 	v := make([]interface{}, val.NumField())
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
@@ -58,7 +73,7 @@ func StrutToScannable (u interface{}) []interface{} {
 	return v
 }
 
-func(q *Query) Get() []Modeler {
+func(q *Query) Get() ([]Modeler, error) {
 	var values []interface{}
 	sql := "SELECT * FROM " + q.Schema +"." + q.Table + " WHERE "
 	// TODO: We are asuming there is always a Where clause
@@ -72,19 +87,11 @@ func(q *Query) Get() []Modeler {
 		values = append(values, v.Value)
 	}
 
-	// TODO : handle this error
-	rows, _ := UsersDb.Query(sql, values...)
-
-	var results []Modeler
-
-	var u Modeler 
-	
-	{{.SwitchForGet}}
-	for rows.Next() {
-		rows.Scan(StrutToScannable(u))
-		results = append(results, u)
+	rows, err := UsersDb.Query(sql, values...)
+	switch q.Table {
+{{.SwitchForGet}}
 	}
-
-	return results
+	
+	return results, err
 }
  

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	fs "github.com/alfonsodev/yao/filesystem"
-	_ "github.com/lib/pq"
 	"os/exec"
 	"strings"
 	"text/template"
+
+	fs "github.com/alfonsodev/yao/filesystem"
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
@@ -107,13 +108,17 @@ func panicIfErr(err error) {
 }
 
 func genererateQueryFile(schemaname string, info map[string][]FieldInfo) {
-	data := TemplateData{ Schema: schemaname }
-	// Create static functions file (query.go)	
+	data := TemplateData{Schema: schemaname}
+
+	for k, _ := range info {
+		data.SwitchForGet += fmt.Sprintf("		case \"%v\": results := %vGet(rows) \n", UcFirst(k), UcFirst(k))
+	}
+
+	// Create static functions file (query.go)
 	tmpl, err := template.ParseFiles("./template/query.tmpl")
 	panicIfErr(err)
 	out := new(bytes.Buffer)
 	err = tmpl.Execute(out, data)
-
 	fs.CreateQueryFile(schemaname, string(out.Bytes()))
 	panicIfErr(err)
 }
@@ -139,8 +144,8 @@ func PrintQuery(tables []string, fields []FieldInfo) string {
 	var out string
 	out += "switch q.Table { "
 	for _, v := range tables {
-		out += "case '" + v + "' :" 
-		out += "" 
+		out += "case '" + v + "' :"
+		out += ""
 	}
 	out += "}" // close switch
 
@@ -160,7 +165,7 @@ func PrintModel(name string, fields []FieldInfo) string {
 		data.StructFields += "   " + UcFirst(v.Name) + " " + v.Datatype + "\n"
 		data.ScanFields += "        &u." + UcFirst(v.Name) + ", \n"
 		if v.KeyInfo != "pk" {
-			data.SaveFields += "          util.GetValue(obj." + UcFirst(v.Name) + "), \n"
+			data.SaveFields += "          getValue(obj." + UcFirst(v.Name) + "), \n"
 			if v.Name == "json" {
 				data.JsonFields += "obj.Json.String = \"{}\" \n"
 			}
