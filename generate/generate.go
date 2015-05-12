@@ -111,7 +111,7 @@ func genererateQueryFile(schemaname string, info map[string][]FieldInfo) {
 	data := TemplateData{Schema: schemaname}
 
 	for k, _ := range info {
-		data.SwitchForGet += fmt.Sprintf("		case \"%v\": results := %vGet(rows) \n", UcFirst(k), UcFirst(k))
+		data.SwitchForGet += fmt.Sprintf("		case \"%v\": results = %vGet(rows) \n", strings.ToLower(k), UcFirst(k))
 	}
 
 	// Create static functions file (query.go)
