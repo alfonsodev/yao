@@ -35,8 +35,11 @@ func main() {
 		Short: "Generate models",
 		Long:  `Generates one model file per each table in your datase.`,
 		Run: func(cmd *cobra.Command, args []string) {
+			params := fmt.Sprintf("dbname=%s sslmode=%s", flags.database, flags.sslmode)
+			fmt.Println("Params:" + params)
+			//			_, err := g.Open("postgres", params)
+			_, err := g.Open("postgres", "dbname=yaotest sslmode=disable")
 
-			_, err := g.Open("postgres", fmt.Sprintf("dbname=%s sslmode=%s", flags.database, flags.sslmode))
 			if err != nil {
 				fmt.Println(err.Error())
 			}

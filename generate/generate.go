@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"text/template"
@@ -115,7 +116,7 @@ func genererateQueryFile(schemaname string, info map[string][]FieldInfo) {
 	}
 
 	// Create static functions file (query.go)
-	tmpl, err := template.ParseFiles("./template/query.tmpl")
+	tmpl, err := template.ParseFiles(os.Getenv("GOPATH") + "/src/github.com/alfonsodev/yao/template/query.tmpl")
 	panicIfErr(err)
 	out := new(bytes.Buffer)
 	err = tmpl.Execute(out, data)
@@ -184,7 +185,7 @@ func PrintModel(name string, fields []FieldInfo) string {
 		data.Keys = data.Keys[1:]
 	}
 
-	tmpl, err := template.ParseFiles("./template/model.tmpl")
+	tmpl, err := template.ParseFiles(os.Getenv("GOPATH") + "/src/github.com/alfonsodev/yao/template/model.tmpl")
 	if err != nil {
 		panic(err)
 	}

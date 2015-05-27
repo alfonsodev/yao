@@ -1,10 +1,18 @@
 package filesytem
 
-import "os"
+import (
+	"os"
+	"path/filepath"
+)
 
-const MODELSDIR = "./models" //TODO: make it configurable by flag
+var MODELSDIR = "/models" //TODO: make it configurable by flag
 const PERMISSIONS = 0777
 
+func init() {
+	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	pie(err)
+	MODELSDIR = dir + MODELSDIR
+}
 func pie(e error) {
 	if e != nil {
 		panic(e)

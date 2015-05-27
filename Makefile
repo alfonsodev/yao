@@ -12,7 +12,7 @@ fixtures:
 
 gen:
 	-rm -rf ./models
-	go run yao.go gen
+	go run yao.go gen -d $(DBNAME)
 test: structure fixtures 
 	go test ./models_test.go -v 
 all: structure fixtures gen

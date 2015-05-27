@@ -33,6 +33,7 @@ func TestUsers(t *testing.T) {
 	user.Googletoken.Scan("312393lk3j1lkjl123")
 	user.Person.Scan("{}")
 	user.Joinedon.Scan(695510502)
+
 	_, err := user.Save()
 	if err != nil {
 		t.Error("Can't save\n" + err.Error())
@@ -52,42 +53,37 @@ func TestUsers(t *testing.T) {
 	}
 
 	// I can apply WHERE cluase
-	q := UM.UsersWhere("Email", "LIKE", "%.edu")
+	students, errStu := UM.UsersWhere("Email", "LIKE", "%.edu").Get()
 
-	us, err := q.Get()
-
-	for i, v := range us {
+	for i, v := range students {
 		fmt.Printf("%+v, %v \n", v, i)
-		//fmt.Println("Username: " + v.Email.String + "\n")
+		fmt.Println("Username: " + v.(*UM.Users).Email.String + "\n")
 
 	}
 
-	//	fmt.Printf("%v", q)
+	if errStu != nil {
+		t.Error("I can't filter by Email")
+	}
 
-	//
-	//       if errStu != nil {
-	//       	t.Error("I can't filter by Email")
-	//       }
-	//
-	//       if len(students) != 2 {
-	//       	t.Error("Something is wrong with the number of results")
-	//       }
-	//
-	//       // Chain Multiple WHERE
-	//       subStudents, errSub := user.Where("Email", "LIKE", "%.edu").And("Location", "=", "Zurich").Get()
-	//
-	//       if errSub != nil {
-	//       	t.Error("Can't chain two Where cluases")
-	//       }
-	//
-	//       if len(subStudents) != 1 || subStudents[0].Username.String != "Albert" {
-	//       	t.Error("Something is wrong with filtering with two Where clauses ")
-	//       }
-	//
-	//       // Chain Where, multiple ANDS and OR
-	//       _, errUsers2 := user.Where("Email", "LIKE", "%.edu").Or("Email", "LIKE", "%.co.uk").And("Joinedon", "=", 695510502).Get()
-	//       if errUsers2 != nil {
-	//       	t.Errorf("Can't filter with Where Or and And")
-	//       }
-	//
+	if len(students) != 2 {
+		t.Error("Something is wrong with the number of results")
+	}
+
+	// Chain Multiple WHERE
+	subStudents, errSub := UM.UsersWhere("Email", "LIKE", "%.edu").And("Location", "=", "Zurich").Get()
+
+	if errSub != nil {
+		t.Error("Can't chain two Where cluases")
+	}
+
+	if len(subStudents) != 1 || subStudents[0].(UM.Users).Username.String != "Albert" {
+		t.Error("Something is wrong with filtering with two Where clauses ")
+	}
+
+	// Chain Where, multiple ANDS and OR
+	_, errUsers2 := UM.UsersWhere("Email", "LIKE", "%.edu").Or("Email", "LIKE", "%.co.uk").And("Joinedon", "=", 695510502).Get()
+	if errUsers2 != nil {
+		t.Errorf("Can't filter with Where Or and And")
+	}
+
 }
