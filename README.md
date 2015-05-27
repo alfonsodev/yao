@@ -1,68 +1,52 @@
-#YAO
- 
-## Yao's an ORM for Golang
+#YAO's An ORM
 Yao is an ORM for Golang, inspired in [Laravel eloquent ORM](http://laravel.com/docs/5.0/eloquent)
-Yao generates a model for every table in yuor databse, making easier to deal with the most common CRUD boring operations.
+Currently only compatible with postgresql.
 
-### No Magic philosophy: 
-The philosophy of Yao is to generate plain go code that has no other dependecies than the standard database/sql library.
-Making easy to extend the models and understand what yao is doing. 
-by using reflection during generation but not in run time. 
-
-### Databases support:
-Currently only Postgres is supported, but Yao implements an adapter pattern inspired by the core database/sql driver Go library ,
-that make very easy to extend to different databses, have a look to [adapters/postgres/postgres.sql](http://github.com/alfonsodev/yao)
-to have an idea what you need to implent. Basically your adapter needs to meet the Yao driver interface.
-
-### Chainable calls:
-Example: 
-`.Where('email','=','me@mail.com').And('age','>',20).Or('name','=', 'Jhon').Get()`
-## Install
+## Setup
+Start working with yao in two steps
+### 1 Get YAO
 `
 go get github.com/alfonsodev/yao
 `
-
-## Generate your models 
+### 2 Run Yao
+run yao gen to generate automatically your models (yao gen -h , too se all the options)
 `
-yao gen -d dbname -u username -p password -H host 
+yao gen -d dbname -H host
 `
+It will generate: 
+  - `./models` folder
+  - iside it a go package for each postgres schema (namespace) in your database.
+  - a .go file for each table
+  - a helper file query.go for .Where .And .Or .. functions. 
 
-Include
-yao generates create a folder per each schema inside models, 
-the default schema is called `public` so at least you'll have to import this one
+* Remember default schema is public, so at least you should have  `./models/public`
+## Usage
+For these examples Let's supouse your have a database `foodb` with a schema named `usermanager` with a `users` table.
+You could run `yao gen -d foodb -H localhost` and it would create a `/models/usermanager/users.go` file. 
 
 `
-import(
-  publicSchema "github.com/youUser/yourpacker/models/public",
-  userSchema "github.com/youUser/yourpacker/models/userschema",
-)
+  import (
+    "database/sql"
+    UM "github.com/alfonsodev/yao/models/usermanager"
+  )
+
+  // use a regular database/sql connection
+  db, err = sql.Open("postgres", "dbname=yaotest sslmode=disable")
+  // pass it to NewNameOfTable and it will create a struct for you
+  user := UM.NewUsers(db)
+  // Use scan for ints or string 
+  user.Username.Scan("Albert")
+  user.Joinedon.Scan(695510502)
+  // Insert
+  user.Save()
+  // Get all rows
+  users, error := UM.AllUsers()
+  // Get with Where clause
+  students, error := UM.UsersWhere("Email", "LIKE", "%.edu").Get()
+  // Chainable And,Ors conditions
+  students, error := UM.UsersWhere("Email", "LIKE", "%.edu").And("Location", "=", "Zurich").Get()
+  students, error := UM.UsersWhere("Email", "LIKE", "%.edu")
+                            .Or("Email", "LIKE", "%.co.uk")
+                            .And("Joinedon", "=", 695510502).Get()
+
 `
-
-
-## Insert 
-  user = publicSchema.Users.New()
-  user.Username.Scan("Username") 
-  user.save() 
-
-## Find all
-  users = publicSchema.Users.All()
-  
-## Where
-  users = publicSchema.Users.Where("email", "like", "*@gmail.com").Get()
-
-## Where And Or 
-
-	  users = publicSchema.Users
-		.Where("email", "like", "*@gmail.com")
-		.And("Age", ">", 23)
-		.Get()
-
-## Find by Primary Key 
-  user = publicSchema.Users.Find(1)  
-
-## Delete
-  user = publicSchema.Users.Find(1)  
-  user.Delete()
-  // Or you can chain 
-  publicSchema.Users.Find(1).Delete()
-
