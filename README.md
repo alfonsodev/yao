@@ -3,11 +3,13 @@ Yao is an ORM for Golang, inspired in [Laravel eloquent ORM](http://laravel.com/
 Currently only compatible with postgresql.
 
 ## Generate your models
-Get the yao command line tool with 
+Get the yao command line tool with:  
 `
 go get github.com/alfonsodev/yao
-`
-Then you can run `yao gen` to generate automatically your models (`yao gen -h` , too se all the options)
+`  
+
+Then you can run `yao gen` to generate automatically your models (`yao gen -h` , too se all the options)  
+
 `
 yao gen -d dbname -H host
 `
@@ -15,8 +17,8 @@ It will generate:
   - `./models` folder
   - iside it a go package for each postgres schema (namespace) in your database.
   - a .go file for each table
-  - a helper file query.go for .Where .And .Or .. functions. 
-Remember default schema is public, so at least you should have  `./models/public`  
+  - a helper file query.go for .Where .And .Or .. functions.  
+Remember default schema name is public, so at least you should have  `./models/public`  
 
 ## Usage
 For these examples let's supouse your have a database `foodb` with a schema named `usermanager` with a `users` table.
