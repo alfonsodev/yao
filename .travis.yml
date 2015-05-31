@@ -15,7 +15,7 @@ addons:
 
 script:
  - psql yaotest -f ./fixtures/usermanager.sql -U postgres
- - psql yaotest -f ./usermanager.users.data1.sql -U postgres
+ - psql yaotest -f ./fixtures/usermanager.users.data1.sql -U postgres
  - 
  - $HOME/gopath/bin/goveralls -service=travis-ci
 before_install:
