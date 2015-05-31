@@ -47,7 +47,7 @@ func New{{.Name}} (db *sql.DB) {{.Name}} {
   return model 
 }
 
-func {{.Name}}Where(field string, condition string, value interface{}) Query {
+func {{.Name}}Where(field string, condition string, value interface{}) *Query {
 	q:= Query {
 		Schema: "{{.Schema}}",
 		Table: strings.ToLower("{{.Name}}"),
@@ -59,14 +59,14 @@ func {{.Name}}Where(field string, condition string, value interface{}) Query {
 		Value: value,
 	}
 
-	return q 
+	return &q
 }
 
 func {{.Name}}Get(rows *sql.Rows) []Modeler {
 	var results []Modeler
 	var row {{.Name}} 
 	for rows.Next() {
-		rows.Scan(StrutToScannable(&row))
+		rows.Scan({{.AllFieldsByRef}})
 		results = append(results, &row)
 	}
 

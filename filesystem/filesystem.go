@@ -5,14 +5,23 @@ import (
 	"path/filepath"
 )
 
-var MODELSDIR = "/models" //TODO: make it configurable by flag
-const PERMISSIONS = 0777
+const PERMISSIONS = 0755
+
+var workingDirectory string
 
 func init() {
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	pie(err)
-	MODELSDIR = dir + MODELSDIR
+	workingDirectory = dir + "/models"
 }
+
+func SetWorkingDirectory(dir string) {
+	//TODO: Check for the existence of the directory
+	if dir != "" {
+		workingDirectory = dir
+	}
+}
+
 func pie(e error) {
 	if e != nil {
 		panic(e)
@@ -30,26 +39,26 @@ func createFile(fileName string, content string) {
 	return
 }
 
-func CreateModelsFolder() error {
-	return os.Mkdir(MODELSDIR, PERMISSIONS)
+func CreateModelsFolder(output string) error {
+	return os.Mkdir(workingDirectory, PERMISSIONS)
 }
 
 // Creates a folder in MODELSDIR with the given name
 func CreateSchemaFolder(name string) error {
-	return os.Mkdir(MODELSDIR+"/"+name, PERMISSIONS)
+	return os.Mkdir(workingDirectory+"/"+name, PERMISSIONS)
 }
 
 // Creates the models/schemaname/query.go file or panics
 func CreateQueryFile(schema string, content string) {
-	createFile(MODELSDIR+"/"+schema+"/query.go", content)
+	createFile(workingDirectory+"/"+schema+"/query.go", content)
 }
 
 func CreateModelFile(schema string, name string, content string) {
 	var fileName string
 	if schema == "" {
-		fileName = MODELSDIR + "/" + name + ".go"
+		fileName = workingDirectory + "/" + name + ".go"
 	} else {
-		fileName = MODELSDIR + "/" + schema + "/" + name + ".go"
+		fileName = workingDirectory + "/" + schema + "/" + name + ".go"
 	}
 	createFile(fileName, content)
 }
