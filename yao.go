@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-
 	_ "github.com/alfonsodev/yao/adapter/postgresql"
 	g "github.com/alfonsodev/yao/generate"
 	_ "github.com/lib/pq"
@@ -11,12 +10,13 @@ import (
 
 func main() {
 	type Flags struct {
-		verbose  bool
-		host     string
-		database string
-		user     string
-		pass     string
-		sslmode  string
+		verbose   bool
+		host      string
+		database  string
+		user      string
+		pass      string
+		sslmode   string
+		outputDir string
 	}
 
 	var flags Flags
@@ -26,7 +26,7 @@ func main() {
 		Short: "Display version",
 		Long:  `Display version of this software`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Yao (yet another orm) -- v.01")
+			fmt.Println("Yao (yet another orm) -- v0.2")
 		},
 	}
 
@@ -36,18 +36,16 @@ func main() {
 		Long:  `Generates one model file per each table in your datase.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			params := fmt.Sprintf("dbname=%s sslmode=%s", flags.database, flags.sslmode)
-			fmt.Println("Params:" + params)
-			//			_, err := g.Open("postgres", params)
-			_, err := g.Open("postgres", "dbname=yaotest sslmode=disable")
+			_, err := g.Open("postgres", params)
 
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			//      g.Conn("postgres", db)
-			g.Generate("usermanager")
+			g.Generate("usermanager", flags.outputDir)
 		},
 	}
 
+	generateCmd.Flags().StringVarP(&flags.outputDir, "output", "o", "", "Directory path where models folders will be created.")
 	generateCmd.Flags().StringVarP(&flags.database, "database", "d", "", "Database name.")
 	generateCmd.Flags().StringVarP(&flags.host, "host", "H", "", "Host name")
 	generateCmd.Flags().StringVarP(&flags.user, "user", "u", "", "User name.")

@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	//	"fmt"
 	"testing"
 
 	UM "github.com/alfonsodev/yao/models/usermanager"
@@ -41,7 +42,6 @@ func TestUsers(t *testing.T) {
 
 	// Can Retrieve all rows
 	users, errAll := UM.AllUsers()
-	fmt.Printf("number of users is %v", len(users))
 
 	if errAll != nil || len(users) != 11 {
 		t.Error("Can't retrieve the users ")
@@ -55,10 +55,10 @@ func TestUsers(t *testing.T) {
 	// I can apply WHERE cluase
 	students, errStu := UM.UsersWhere("Email", "LIKE", "%.edu").Get()
 
-	for i, v := range students {
-		fmt.Printf("%+v, %v \n", v, i)
-		fmt.Println("Username: " + v.(*UM.Users).Email.String + "\n")
-
+	for _, v := range students {
+		if v.(*UM.Users).Email.String == "" {
+			t.Error("Emails should not be emtpy")
+		}
 	}
 
 	if errStu != nil {
@@ -76,7 +76,7 @@ func TestUsers(t *testing.T) {
 		t.Error("Can't chain two Where cluases")
 	}
 
-	if len(subStudents) != 1 || subStudents[0].(UM.Users).Username.String != "Albert" {
+	if len(subStudents) != 1 || subStudents[0].(*UM.Users).Username.String != "Albert" {
 		t.Error("Something is wrong with filtering with two Where clauses ")
 	}
 

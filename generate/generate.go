@@ -85,11 +85,12 @@ func UcFirst(s string) string {
 }
 
 // Genreate one model file per table
-func Generate(schemaname string) {
-	// TODO: make a flag to change folder name
-	err := fs.CreateModelsFolder()
+func Generate(schemaname string, output string) {
+	fs.SetWorkingDirectory(output)
+	err := fs.CreateModelsFolder(output)
 	if err != nil {
 		fmt.Println("[YAO] ./models folder already exist")
+		fmt.Println(err.Error())
 	}
 
 	schemas := yao.GetSchemas()
