@@ -16,7 +16,7 @@ addons:
 script:
  - psql yaotest -f ./fixtures/usermanager.sql -U postgres
  - psql yaotest -f ./usermanager.users.data1.sql -U postgres
- - go run yao.go -dyaotest -o$(pwd)/models
+ - 
  - $HOME/gopath/bin/goveralls -service=travis-ci
 before_install:
  - go get github.com/axw/gocov/gocov
@@ -26,6 +26,6 @@ before_install:
 before_script:
  - go get github.com/lib/pq
  - go get github.com/spf13/cobra
-
+ - go run yao.go -dyaotest -o$(pwd)/models
  - psql -c 'create database yaotest' -U postgres
 
