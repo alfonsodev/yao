@@ -23,16 +23,17 @@ type FieldInfo struct {
 }
 
 type TemplateData struct {
-	Name         string
-	StructFields string
-	ScanFields   string
-	Schema       string
-	Table        string
-	Keys         string
-	Placeholders string
-	SaveFields   string
-	JsonFields   string
-	SwitchForGet string
+	Name           string
+	StructFields   string
+	ScanFields     string
+	Schema         string
+	Table          string
+	Keys           string
+	Placeholders   string
+	SaveFields     string
+	JsonFields     string
+	SwitchForGet   string
+	AllFieldsByRef string
 }
 
 type YaoDriver interface {
@@ -165,6 +166,7 @@ func PrintModel(name string, fields []FieldInfo) string {
 	for i, v := range fields {
 		data.StructFields += "   " + UcFirst(v.Name) + " " + v.Datatype + "\n"
 		data.ScanFields += "        &u." + UcFirst(v.Name) + ", \n"
+		data.AllFieldsByRef += "&row." + UcFirst(v.Name) + ", "
 		if v.KeyInfo != "pk" {
 			data.SaveFields += "          getValue(obj." + UcFirst(v.Name) + "), \n"
 			if v.Name == "json" {
@@ -176,6 +178,8 @@ func PrintModel(name string, fields []FieldInfo) string {
 			data.Keys += ", " + strings.ToLower(v.Name)
 		}
 	}
+
+	data.AllFieldsByRef = strings.TrimRight(data.AllFieldsByRef, ", ")
 
 	if len(data.Placeholders) > 0 {
 		data.Placeholders = data.Placeholders[1:]
