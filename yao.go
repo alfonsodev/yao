@@ -26,7 +26,7 @@ func main() {
 		Short: "Display version",
 		Long:  `Display version of this software`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Yao (yet another orm) -- v.01")
+			fmt.Println("Yao (yet another orm) -- v0.2")
 		},
 	}
 
