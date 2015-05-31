@@ -1,0 +1,31 @@
+language: go
+go:
+  - 1.4
+  - tip
+env:
+  global:
+    - PGUSER=postgres
+    - PQGOSSLTESTS=1
+    - USRMNG_DBNAME=usermanager
+    - USRMNG_USER=postgres
+  matrix:
+    - PGVERSION=9.4
+addons:
+  postgresql: "9.4"
+
+script:
+ - psql usermanager -f ./fixtures/usermanager.sql -U postgres
+ - psql usermanager -f ./usermanager.users.data1.sql -U postgres
+ - go run yao.go -dyaotest -o$(pwd)/models
+ - $HOME/gopath/bin/goveralls -service=travis-ci
+before_install:
+ - go get github.com/axw/gocov/gocov
+ - go get github.com/mattn/goveralls
+ - if ! go get code.google.com/p/go.tools/cmd/cover; then go get golang.org/x/tools/cmd/cover; fi
+
+before_script:
+ - go get github.com/lib/pq
+ - go get github.com/spf13/cobra
+
+ - psql -c 'create database yaotest' -U postgres
+
