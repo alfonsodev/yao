@@ -2,7 +2,6 @@ package {{.Schema}}
 
 import(
 	"fmt"
-	"reflect"
 	"database/sql"
 	"database/sql/driver"
 )
@@ -61,18 +60,7 @@ func (q *Query) Or(field string, condition string, value interface{}) *Query {
         return q
 }
 
-func StrutToScannable (u interface{}) []interface{} {
-	val := reflect.ValueOf(u).Elem()
-//	fname := strings.ToLower(val.Type().Field(i).Name)
-
-	v := make([]interface{}, val.NumField())
-	for i := 0; i < val.NumField(); i++ {
-		valueField := val.Field(i)
-		v[i] = valueField.Addr().Interface()
-	}
-
-	return v
-}
+ 
 
 func(q *Query) Get() ([]Modeler, error) {
 	var values []interface{}
