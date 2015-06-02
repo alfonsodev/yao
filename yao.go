@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	_ "github.com/alfonsodev/yao/adapter/postgresql"
 	g "github.com/alfonsodev/yao/generate"
 	_ "github.com/lib/pq"
@@ -26,7 +27,7 @@ func main() {
 		Short: "Display version",
 		Long:  `Display version of this software`,
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("Yao (yet another orm) -- v0.2")
+			fmt.Println("Yao (yet another orm) -- v0.3")
 		},
 	}
 

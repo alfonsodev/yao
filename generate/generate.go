@@ -98,7 +98,6 @@ func Generate(schemaname string, output string) {
 		for _, schename := range schemas {
 			info := yao.GetInformationSchema(schename)
 			generateModelFromSchema(schename, info)
-			genererateQueryFile(schename, info)
 		}
 		return
 	}
@@ -118,7 +117,7 @@ func genererateQueryFile(schemaname string, info map[string][]FieldInfo) {
 	}
 
 	// Create static functions file (query.go)
-	tmpl, err := template.ParseFiles(os.Getenv("GOPATH") + "/src/github.com/alfonsodev/yao/template/query.tmpl")
+	tmpl, err := template.ParseFiles(os.Getenv("GOPATH") + "/src/github.com/alfonsodev/yao/template/.tmpl")
 	panicIfErr(err)
 	out := new(bytes.Buffer)
 	err = tmpl.Execute(out, data)
@@ -134,8 +133,7 @@ func generateModelFromSchema(schemaname string, info map[string][]FieldInfo) {
 
 	for k, v := range info {
 		fs.CreateModelFile(schemaname, strings.ToLower(k), PrintModel(k, v))
-		// fmt.Println("./models/" + schemaname + "/" + strings.ToLower(k) + ".go")
-		cmd := exec.Command("go", "fmt", "./models/"+schemaname+"/"+UcFirst(k)+".go")
+		cmd := exec.Command("go", "fmt", "./models/"+schemaname+"/"+k+"/"+UcFirst(k)+".go")
 		err := cmd.Run()
 		if err != nil {
 			fmt.Println(string(err.Error()))
