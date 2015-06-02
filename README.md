@@ -1,4 +1,5 @@
-#YAO's An ORM
+#YAO
+###Yet Another Orm
 [![Build Status](https://drone.io/github.com/alfonsodev/yao/status.png)](https://drone.io/github.com/alfonsodev/yao/latest)   
 
 Yao is an ORM for Golang, inspired in [Laravel eloquent ORM](http://laravel.com/docs/5.0/eloquent)
