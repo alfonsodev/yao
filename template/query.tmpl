@@ -79,7 +79,6 @@ func(q *Query) Get() ([]Modeler, error) {
 	rows, err := UsersDb.Query(sql, values...)
 	var results []Modeler
 	switch q.Table {
-{{.SwitchForGet}}
 	}
 	
 	return results, err

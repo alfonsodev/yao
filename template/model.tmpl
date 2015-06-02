@@ -1,7 +1,9 @@
-package {{.Schema}}
+package {{.Name}}
 
 import (
 	"database/sql"
+  "database/sql/driver"
+  "fmt"
 	_ "github.com/lib/pq"
 	"strings"
 )
@@ -9,7 +11,7 @@ import (
 var {{.Name}}Db *sql.DB
 
 type {{.Name}} struct {
-	{{.StructFields}}
+{{.StructFields}}
 }
 
 func (obj *{{.Name}}) Save() (*sql.Rows, error) {
@@ -17,14 +19,14 @@ func (obj *{{.Name}}) Save() (*sql.Rows, error) {
     query += " VALUES({{.Placeholders}}) "
 
     return {{.Name}}Db.Query(query,
-        {{.SaveFields}}
+    {{.SaveFields}}
     )
 }
 
 
 
 
-func  All{{.Name}}() ([]{{.Name}}, error) {
+func  All() ([]{{.Name}}, error) {
   var results []{{.Name}}
   query := "SELECT * FROM {{.Schema}}.{{.Table}} "
   rows, err := {{.Name}}Db.Query(query)
@@ -41,13 +43,13 @@ func  All{{.Name}}() ([]{{.Name}}, error) {
   return results, err
 }
 
-func New{{.Name}} (db *sql.DB) {{.Name}} {
+func New(db *sql.DB) {{.Name}} {
   {{.Name}}Db = db
   var model {{.Name}}
   return model 
 }
 
-func {{.Name}}Where(field string, condition string, value interface{}) *Query {
+func Where(field string, condition string, value interface{}) *Query {
 	q:= Query {
 		Schema: "{{.Schema}}",
 		Table: strings.ToLower("{{.Name}}"),
@@ -73,3 +75,83 @@ func {{.Name}}Get(rows *sql.Rows) []Modeler {
 	return results
 }
 
+
+type Modeler interface {
+  Save() (*sql.Rows, error)
+}
+
+type Query struct {
+        Schema string
+        Table string
+        Where Clause
+        Clauses []Clause
+        Limit int64
+}
+
+type Clause struct {
+        Field string
+        Condition string
+        Value interface{}
+        Connector string
+        Parenthesis string
+}
+
+func panicIf(err error) {
+  if err != nil {
+    panic(err.Error())
+  }
+}
+func getValue(v driver.Valuer) interface{} {
+  o, err := v.Value()
+  panicIf(err)
+
+  return o
+}
+
+func (q *Query) And(field string, condition string, value interface{}) *Query {
+        q.Clauses = append(q.Clauses, Clause{
+                Field:     field,
+                Condition: condition,
+                Value:     value,
+                Connector: "AND",
+        })
+
+        return q
+}
+func (q *Query) Or(field string, condition string, value interface{}) *Query {
+
+        q.Clauses = append(q.Clauses, Clause{
+                Field:     field,
+                Condition: condition,
+                Value:     value,
+                Connector: "OR",
+        })
+
+        return q
+}
+
+func(q *Query) Get() ([]{{.Name}}, error) {
+  var values []interface{}
+  sql := "SELECT * FROM " + q.Schema +"." + q.Table + " WHERE "
+  // TODO: We are asuming there is always a Where clause
+  sql += fmt.Sprintf("%s %s $1", q.Where.Field, q.Where.Condition)
+  values = append(values, q.Where.Value)
+  for i, v := range q.Clauses {
+    if v.Connector != "" {
+      sql += " " + v.Connector + " "
+    }
+    sql += fmt.Sprintf("%s %s $%v", v.Field, v.Condition, i+2)
+    values = append(values, v.Value)
+  }
+
+  rows, err := UsersDb.Query(sql, values...)
+  var results []{{.Name}}
+  var row {{.Name}}
+
+  for rows.Next() {
+    rows.Scan({{.AllFieldsByRef}})
+    results = append(results, row)
+  }
+ 
+  return results, err
+}

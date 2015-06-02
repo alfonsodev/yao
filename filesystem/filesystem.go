@@ -55,10 +55,12 @@ func CreateQueryFile(schema string, content string) {
 
 func CreateModelFile(schema string, name string, content string) {
 	var fileName string
-	if schema == "" {
-		fileName = workingDirectory + "/" + name + ".go"
+	if schema == "" { // mysql doesn't have schema as a namespace concept as postgres does
+		os.Mkdir(workingDirectory+"/"+name, PERMISSIONS)
+		fileName = workingDirectory + "/" + name + "/" + name + ".go"
 	} else {
-		fileName = workingDirectory + "/" + schema + "/" + name + ".go"
+		os.Mkdir(workingDirectory+"/"+schema+"/"+name, PERMISSIONS)
+		fileName = workingDirectory + "/" + schema + "/" + name + "/" + name + ".go"
 	}
 	createFile(fileName, content)
 }
