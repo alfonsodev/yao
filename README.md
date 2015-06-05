@@ -27,20 +27,20 @@ Postgresql:
 ```
 
 ### Save 
-```
+```go
     var user Users
     user.Email.Scan("yao@yao-orm.org")
     user.Save()
 ```
 ### Select all users from Users table  
 
-```
+```go
     users, err := Users.All()
     for i, user := range users {
       fmt.Println(user.Email.String)
     }
 ```
 ### Where, and, or, Get() to get filtered results
-```
+```go
     users, err := Users.Where("Email", "LIKE", "%.edu").And("Location", "=", "Zurich").Get()
 ```
